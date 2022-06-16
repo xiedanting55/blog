@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require('bcrypt');
+const Joi = require('joi');
 
 const userSchema = new mongoose.Schema({
     username: {
@@ -41,7 +42,20 @@ async function createUser() {
     })
 }
 // createUser();
+const validateUser = user => {
+    const schema = Joi.object({
+        username: Joi.string().min(3).max(30).required().error(new Error("用户名不符合规则")),
+        email: Joi.string().email().required().error(new Error("邮箱格式不符合要求")),
+        password: Joi.string().regex(/^[a-zA-Z0-9]{3,30}$/).required().error(new Error("密码格式不符合要求")),
+        role: Joi.string().valid('normal', 'admin').required().error(new Error("角色值非法")),
+        state: Joi.number().valid(0, 1).required().error(new Error("状态值非法"))
+    })
+    return schema.validateAsync(user); 
+}
+
+
 
 module.exports = {
-    User
+    User,
+    validateUser
 };
